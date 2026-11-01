@@ -1,0 +1,6 @@
+{
+  "name": "Los Angeles Roleplay Discord Management & Music System",
+  "description": "Professional 100-slash-command Discord bot codebase & interactive management studio for Los Angeles Roleplay built by Carlos473.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
