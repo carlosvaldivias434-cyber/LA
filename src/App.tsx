@@ -52,11 +52,42 @@ export default function App() {
 
   // Groq AI Support Assistant State & Knowledge Base
   const [aiBotName, setAiBotName] = useState<string>('Assistant AI');
+  const [botStatusMode, setBotStatusMode] = useState<'dnd' | 'online' | 'idle' | 'invisible'>('dnd');
   const [aiFooterText, setAiFooterText] = useState<string>('Powered by Los Angeles Roleplay · Assistant AI · A staff member can take over at any time');
   const [aiStaffStatus, setAiStaffStatus] = useState<string>('Support Team Paged 🔔');
   const [ticketStatusNotice, setTicketStatusNotice] = useState<string | null>(null);
   const [showConfigStudio, setShowConfigStudio] = useState<boolean>(true);
   const [selectedKbIndex, setSelectedKbIndex] = useState<number>(0);
+
+  const renderStatusBadge = (status: 'dnd' | 'online' | 'idle' | 'invisible', size: 'sm' | 'md' | 'lg' = 'md') => {
+    const sizeClasses = {
+      sm: 'w-3 h-3',
+      md: 'w-3.5 h-3.5',
+      lg: 'w-4 h-4'
+    };
+    if (status === 'dnd') {
+      return (
+        <div className={`rounded-full bg-[#f23f43] border-2 border-[#232428] flex items-center justify-center shrink-0 ${sizeClasses[size]}`} title="Do Not Disturb">
+          <span className="w-1.5 h-[2px] bg-white rounded-full"></span>
+        </div>
+      );
+    }
+    if (status === 'idle') {
+      return (
+        <div className={`rounded-full bg-[#f0b232] border-2 border-[#232428] flex items-center justify-center shrink-0 ${sizeClasses[size]}`} title="Idle">
+          <span className="w-1 h-1 bg-[#232428] rounded-full translate-x-0.5 -translate-y-0.5"></span>
+        </div>
+      );
+    }
+    if (status === 'invisible') {
+      return (
+        <div className={`rounded-full bg-[#80848e] border-2 border-[#232428] shrink-0 ${sizeClasses[size]}`} title="Offline / Invisible" />
+      );
+    }
+    return (
+      <div className={`rounded-full bg-[#23a55a] border-2 border-[#232428] shrink-0 ${sizeClasses[size]}`} title="Online" />
+    );
+  };
 
   const [knowledgeBase, setKnowledgeBase] = useState([
     {
@@ -605,16 +636,40 @@ export default function App() {
               <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow">
                 LA
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#23a55a] border-2 border-[#232428]" />
+              <div className="absolute -bottom-0.5 -right-0.5">
+                {renderStatusBadge(botStatusMode, 'md')}
+              </div>
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-xs font-semibold text-white truncate flex items-center gap-1.5">
-                Los Angeles Assistant AI
+                Los Angeles {aiBotName}
                 <span className="px-1 py-0.2 bg-[#5865f2] text-white rounded text-[9px] font-bold uppercase">APP</span>
               </div>
-              <div className="text-[10px] text-emerald-400 font-medium truncate flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
-                Assistant AI · Online
+              <div className="text-[10px] font-medium truncate flex items-center gap-1.5 mt-0.5">
+                {botStatusMode === 'dnd' ? (
+                  <span className="text-red-400 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-[#f23f43] flex items-center justify-center">
+                      <span className="w-1 h-[1px] bg-white"></span>
+                    </span>
+                    Do Not Disturb
+                  </span>
+                ) : botStatusMode === 'idle' ? (
+                  <span className="text-amber-400 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-[#f0b232] inline-block"></span>
+                    Idle
+                  </span>
+                ) : botStatusMode === 'invisible' ? (
+                  <span className="text-zinc-400 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-[#80848e] inline-block"></span>
+                    Offline
+                  </span>
+                ) : (
+                  <span className="text-emerald-400 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-[#23a55a] inline-block"></span>
+                    Online
+                  </span>
+                )}
+                <span className="text-[#949ba4]">· {aiBotName}</span>
               </div>
             </div>
           </div>
@@ -629,7 +684,7 @@ export default function App() {
             <span className="text-base font-bold text-white tracking-tight whitespace-nowrap flex items-center gap-2">
               Los Angeles Roleplay
               <span className="px-2 py-0.5 bg-[#5865f2]/20 text-[#5865f2] border border-[#5865f2]/40 text-[11px] font-bold rounded-md">
-                Assistant AI
+                {aiBotName}
               </span>
             </span>
             <span className="text-xs text-[#949ba4] hidden md:inline">
@@ -639,8 +694,11 @@ export default function App() {
 
           <div className="flex items-center gap-4 text-xs">
             <div className="flex items-center gap-2 text-[#949ba4] font-mono">
-              <span className="w-2 h-2 rounded-full bg-[#23a55a]" />
-              <span>Status [{statusIndex + 1}/100] · Next in {statusTimer}s</span>
+              {renderStatusBadge(botStatusMode, 'sm')}
+              <span className={botStatusMode === 'dnd' ? 'text-red-400 font-semibold' : 'text-[#dbdee1]'}>
+                {botStatusMode === 'dnd' ? 'DND (Do Not Disturb)' : botStatusMode.toUpperCase()}
+              </span>
+              <span>· Status [{statusIndex + 1}/100] · Next in {statusTimer}s</span>
             </div>
             <button
               onClick={() => {
@@ -1187,8 +1245,15 @@ export default function App() {
                   <div className="space-y-4 pt-2">
                     {ticketChatMessages.map((msg) => (
                       <div key={msg.id} className="flex items-start gap-3 pl-1 animate-in fade-in">
-                        <div className={`w-10 h-10 rounded-full ${msg.avatarBg} flex items-center justify-center text-white font-bold text-xs shadow shrink-0`}>
-                          {msg.avatarText}
+                        <div className="relative shrink-0">
+                          <div className={`w-10 h-10 rounded-full ${msg.avatarBg} flex items-center justify-center text-white font-bold text-xs shadow`}>
+                            {msg.avatarText}
+                          </div>
+                          {(msg.sender === 'bot' || msg.sender === 'system') && (
+                            <div className="absolute -bottom-0.5 -right-0.5">
+                              {renderStatusBadge(botStatusMode, 'sm')}
+                            </div>
+                          )}
                         </div>
                         <div className="space-y-1.5 w-full max-w-2xl">
                           <div className="flex items-center gap-2">
@@ -1251,8 +1316,13 @@ export default function App() {
                     {/* LIVE DISCORD TYPING ANIMATOR */}
                     {isBotTyping && (
                       <div className="flex items-center gap-3 pl-1 text-xs text-[#949ba4] animate-in fade-in py-1">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow shrink-0">
-                          LA
+                        <div className="relative shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow">
+                            LA
+                          </div>
+                          <div className="absolute -bottom-0.5 -right-0.5">
+                            {renderStatusBadge(botStatusMode, 'sm')}
+                          </div>
                         </div>
                         <div className="flex items-center gap-2 bg-[#2b2d31] px-3 py-2 rounded-lg border border-[#35373c]">
                           <span className="font-semibold text-white">{aiBotName}</span>
@@ -1363,7 +1433,7 @@ export default function App() {
                       {showConfigStudio && (
                         <div className="space-y-4 text-xs">
                           {/* 1. Global AI Branding Fields */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-[#1e1f22] p-3 rounded-lg border border-[#35373c]">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-[#1e1f22] p-3 rounded-lg border border-[#35373c]">
                             <div>
                               <label className="text-[11px] font-bold text-[#949ba4] uppercase block mb-1">
                                 AI Assistant Name:
@@ -1377,6 +1447,21 @@ export default function App() {
                             </div>
                             <div>
                               <label className="text-[11px] font-bold text-[#949ba4] uppercase block mb-1">
+                                Bot Discord Status:
+                              </label>
+                              <select
+                                value={botStatusMode}
+                                onChange={(e) => setBotStatusMode(e.target.value as any)}
+                                className="w-full px-2.5 py-1.5 bg-[#2b2d31] border border-[#35373c] rounded text-white text-xs focus:outline-none focus:border-[#5865f2] font-medium"
+                              >
+                                <option value="dnd">🔴 Do Not Disturb (dnd)</option>
+                                <option value="online">🟢 Online (online)</option>
+                                <option value="idle">🟡 Idle (idle)</option>
+                                <option value="invisible">⚪ Invisible (offline)</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-bold text-[#949ba4] uppercase block mb-1">
                                 Staff Status Indicator:
                               </label>
                               <input
@@ -1386,7 +1471,7 @@ export default function App() {
                                 className="w-full px-2.5 py-1.5 bg-[#2b2d31] border border-[#35373c] rounded text-white text-xs focus:outline-none focus:border-[#5865f2]"
                               />
                             </div>
-                            <div className="md:col-span-2">
+                            <div className="md:col-span-3">
                               <label className="text-[11px] font-bold text-[#949ba4] uppercase block mb-1">
                                 Embed Footer / Disclaimer:
                               </label>
@@ -2177,8 +2262,16 @@ export default function App() {
               {/* Active Presence Banner Card */}
               <div className="p-5 bg-[#2b2d31] rounded-xl border border-[#202225] space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="text-xs font-bold text-[#5865f2] uppercase tracking-wider">
-                    Current Active Presence [{statusIndex + 1}/100]
+                  <div className="flex items-center gap-2">
+                    <div className="text-xs font-bold text-[#5865f2] uppercase tracking-wider">
+                      Current Active Presence [{statusIndex + 1}/100]
+                    </div>
+                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/40 text-red-400 text-[10px] font-bold uppercase tracking-wider">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#f23f43] flex items-center justify-center">
+                        <span className="w-1.5 h-[1.5px] bg-white rounded-full"></span>
+                      </span>
+                      Do Not Disturb (dnd)
+                    </span>
                   </div>
                   <div className="text-xs text-[#949ba4] font-mono">
                     Timer: <span className="text-white font-bold">{statusTimer}s</span>
@@ -2207,8 +2300,9 @@ export default function App() {
 
                 {/* Active Bio */}
                 <div className="space-y-1.5 pt-2">
-                  <div className="text-xs font-bold text-[#23a55a] uppercase tracking-wider">
-                    Current Active Application &apos;About Me&apos; Bio [{bioIndex + 1}/50]
+                  <div className="text-xs font-bold text-[#f23f43] uppercase tracking-wider flex items-center gap-2">
+                    <span>Current Active Application &apos;About Me&apos; Bio [{bioIndex + 1}/50]</span>
+                    <span className="text-[10px] text-red-400 font-mono">(Presence: Do Not Disturb)</span>
                   </div>
                   <div className="p-3 bg-[#1e1f22] rounded-lg border border-[#35373c] flex items-center justify-between">
                     <span className="text-xs text-[#dbdee1] italic">
@@ -2247,7 +2341,9 @@ export default function App() {
                         <span className="truncate">{st.text}</span>
                       </div>
                       {statusIndex === st.id - 1 && (
-                        <span className="w-2 h-2 rounded-full bg-[#23a55a] shrink-0" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#f23f43] flex items-center justify-center shrink-0" title="Active (Do Not Disturb)">
+                          <span className="w-1.5 h-[1.5px] bg-white rounded-full"></span>
+                        </span>
                       )}
                     </div>
                   ))}

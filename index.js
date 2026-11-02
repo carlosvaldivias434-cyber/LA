@@ -4,6 +4,7 @@ require('dotenv').config();
 const db = require('./database/db');
 const { handleCommand } = require('./src/handlers/commandHandler');
 const { handleInteraction, handleApplicationMessage, handleTicketUserMessage } = require('./src/handlers/interactionHandler');
+const { handlePrefixCommand } = require('./handlers/prefixCommandHandler');
 const { createBrandedEmbed } = require('./src/utils/embedBuilder');
 
 const client = new Client({
@@ -200,16 +201,22 @@ Bot Status: ONLINE
 ==================================================
   `);
 
-  // 1. Status Rotation Loop (Cycles every 30 seconds across 100 statuses)
+  // 1. Status Rotation Loop (Cycles every 30 seconds across 100 statuses with Do Not Disturb status)
   let statusIndex = 0;
   setInterval(() => {
     const current = STATUS_ROTATION[statusIndex % STATUS_ROTATION.length];
-    client.user.setActivity(current.text, { type: current.type });
+    client.user.setPresence({
+      status: 'dnd',
+      activities: [{ name: current.text, type: current.type }]
+    });
     statusIndex++;
   }, 30000);
 
-  // Set initial status immediately on ready
-  client.user.setActivity(STATUS_ROTATION[0].text, { type: STATUS_ROTATION[0].type });
+  // Set initial status immediately on ready to Do Not Disturb (dnd)
+  client.user.setPresence({
+    status: 'dnd',
+    activities: [{ name: STATUS_ROTATION[0].text, type: STATUS_ROTATION[0].type }]
+  });
 
   // 2. Profile "About Me" Bio Rotation Loop (Cycles every 15 minutes across 50 bios)
   let bioIndex = 0;
@@ -249,6 +256,12 @@ client.on('interactionCreate', async (interaction) => {
 // Listen for application step responses and ticket logging
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
+
+  // Process prefix commands (!tripwire, !help, !knowledge, !play, etc.)
+  if (message.content.startsWith('!')) {
+    const executed = await handlePrefixCommand(message);
+    if (executed) return;
+  }
 
   // Log all messages in ticket channels for HTML transcripts
   const ticket = db.prepare('SELECT id FROM tickets WHERE channel_id = ?').get(message.channel.id);
